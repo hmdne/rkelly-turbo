@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RKelly
   module Visitors
     class ECMAVisitor < Visitor
@@ -87,7 +89,7 @@ module RKelly
       end
 
       def visit_FunctionDeclNode(o)
-        "#{indent}function #{o.value}" + function_params_and_body(o)
+        "#{indent}function #{o.value}" << function_params_and_body(o)
       end
 
       def visit_ParameterNode(o)
@@ -100,11 +102,11 @@ module RKelly
       end
 
       def visit_BreakNode(o)
-        "break" + (o.value ? " #{o.value}" : '') + ';'
+        +"break" << (o.value ? " #{o.value}" : '') << ';'
       end
 
       def visit_ContinueNode(o)
-        "continue" + (o.value ? " #{o.value}" : '') + ';'
+        +"continue" << (o.value ? " #{o.value}" : '') << ';'
       end
 
       def visit_TrueNode(o)
@@ -160,7 +162,7 @@ module RKelly
       end
 
       def visit_ReturnNode(o)
-        "return" + (o.value ? " #{o.value.accept(self)}" : '') + ';'
+        +"return" << (o.value ? " #{o.value.accept(self)}" : '') << ';'
       end
 
       def visit_ThrowNode(o)
@@ -225,7 +227,7 @@ module RKelly
 
       def visit_CaseBlockNode(o)
         @indent += 1
-        "{\n" + (o.value ? o.value.map { |x| x.accept(self) }.join('') : '') +
+        +"{\n" << (o.value ? o.value.map { |x| x.accept(self) }.join('') : '') <<
           "#{@indent -=1; indent}}"
       end
 
@@ -236,7 +238,7 @@ module RKelly
           case_code = "#{indent}default:\n"
         end
         @indent += 1
-        case_code += "#{o.value.accept(self)}\n"
+        case_code << "#{o.value.accept(self)}\n"
         @indent -= 1
         case_code
       end
@@ -255,9 +257,9 @@ module RKelly
 
       def visit_ObjectLiteralNode(o)
         @indent += 1
-        lit = "{" + (o.value.length > 0 ? "\n" : ' ') +
-          o.value.map { |x| "#{indent}#{x.accept(self)}" }.join(",\n") +
-          (o.value.length > 0 ? "\n" : '') + '}'
+        lit = +"{" << (o.value.length > 0 ? "\n" : ' ') <<
+          o.value.map { |x| "#{indent}#{x.accept(self)}" }.join(",\n") <<
+          (o.value.length > 0 ? "\n" : '') << '}'
         @indent -= 1
         lit
       end
@@ -267,21 +269,21 @@ module RKelly
       end
 
       def visit_GetterPropertyNode(o)
-        "get #{o.name}" + function_params_and_body(o.value)
+        "get #{o.name}" << function_params_and_body(o.value)
       end
 
       def visit_SetterPropertyNode(o)
-        "set #{o.name}" + function_params_and_body(o.value)
+        "set #{o.name}" << function_params_and_body(o.value)
       end
 
       def visit_FunctionExprNode(o)
-        name = (o.value == 'function') ? '' : ' '+o.value
-        "function" + name + function_params_and_body(o)
+        name = (o.value == 'function') ? '' : +' ' << o.value
+        +"function" << name << function_params_and_body(o)
       end
 
       # Helper for all the various function nodes
       def function_params_and_body(o)
-        "(#{o.arguments.map { |x| x.accept(self) }.join(', ')}) " +
+        "(#{o.arguments.map { |x| x.accept(self) }.join(', ')}) " <<
           "#{o.function_body.accept(self)}"
       end
 
@@ -290,24 +292,24 @@ module RKelly
       end
 
       def visit_IfNode(o)
-        "if(#{o.conditions.accept(self)}) #{o.value.accept(self)}" +
+        "if(#{o.conditions.accept(self)}) #{o.value.accept(self)}" <<
           (o.else ? " else #{o.else.accept(self)}" : '')
       end
 
       def visit_ConditionalNode(o)
-        "#{o.conditions.accept(self)} ? #{o.value.accept(self)} : " +
+        "#{o.conditions.accept(self)} ? #{o.value.accept(self)} : " <<
           "#{o.else.accept(self)}"
       end
 
       def visit_ForInNode(o)
         var = o.left.is_a?(RKelly::Nodes::VarDeclNode) ? 'var ' : ''
-        "for(#{var}#{o.left.accept(self)} in #{o.right.accept(self)}) " +
+        "for(#{var}#{o.left.accept(self)} in #{o.right.accept(self)}) " <<
           "#{o.value.accept(self)}"
       end
 
       def visit_TryNode(o)
-        "try #{o.value.accept(self)}" +
-          (o.catch_block ? " catch(#{o.catch_var}) #{o.catch_block.accept(self)}" : '') +
+        "try #{o.value.accept(self)}" <<
+          (o.catch_block ? " catch(#{o.catch_var}) #{o.catch_block.accept(self)}" : '') <<
           (o.finally_block ? " finally #{o.finally_block.accept(self)}" : '')
       end
 
@@ -320,7 +322,7 @@ module RKelly
       end
 
       private
-      def indent; ' ' * @indent * 2; end
+      def indent; ' ' * (@indent * 2); end
     end
   end
 end

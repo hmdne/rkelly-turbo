@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RKelly
   module Nodes
     class Node
@@ -8,10 +10,10 @@ module RKelly
       attr_accessor :value, :comments, :range, :filename
       def initialize(value)
         @value = value
-        @comments = []
         @range = CharRange::EMPTY
-        @filename = nil
       end
+
+      def comments; @comments || []; end
 
       # For backwards compatibility
       def line
@@ -39,7 +41,7 @@ module RKelly
         when String
           ast = RKelly::Parser.new.parse(pattern)
           # Only take the first statement
-          finder = ast.value.first.class.to_s =~ /StatementNode$/ ?
+          finder = ast.value.first.class.name.end_with?("StatementNode") ?
             ast.value.first.value : ast.value.first
           visitor = PointcutVisitor.new(finder)
         else

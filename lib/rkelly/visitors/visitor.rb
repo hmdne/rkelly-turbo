@@ -50,13 +50,21 @@ module RKelly
 
       ARRAY_VALUE_NODES.each do |type|
         define_method(:"visit_#{type}Node") do |o|
-          o.value && o.value.map { |v| v ? v.accept(self) : nil }
+          return nil unless o.value
+          out = Array.new(length = o.value.length); i=-1
+          while (i+=1) < length
+            val = o.value[i]
+            out[i] = val ? val.accept(self) : nil
+          end
+          out
+          #o.value && o.value.map { |v| v ? v.accept(self) : nil }
         end
       end
 
       NAME_VALUE_NODES.each do |type|
         define_method(:"visit_#{type}Node") do |o|
-          [o.name.to_s.to_sym, o.value ? o.value.accept(self) : nil]
+          val = o.value
+          [o.name.to_s.to_sym, val ? val.accept(self) : nil]
         end
       end
 
@@ -87,9 +95,14 @@ module RKelly
       end
       FUNC_DECL_NODES.each do |type|
         define_method(:"visit_#{type}Node") do |o|
+          out = Array.new(length = o.arguments.length); i = -1
+          while (i += 1) < length
+            out[i] = o.arguments[i].accept(self)
+          end
+          val = o.value
           [
-            o.value ? o.value : nil,
-            o.arguments.map { |x| x.accept(self) },
+            val ? val : nil,
+            out, #o.arguments.map { |x| x.accept(self) },
             o.function_body.accept(self)
           ]
         end

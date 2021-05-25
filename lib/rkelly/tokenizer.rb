@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# frozen_string_literal: true
+
 require 'rkelly/lexeme'
 require 'rkelly/char_range'
 require 'strscan'
@@ -110,6 +111,8 @@ module RKelly
       )+
     }mx
 
+    WORD_CHARS = (('a'..'z').to_a + ('A'..'Z').to_a + ['_', '$']).freeze
+    DIGITS = ('0'..'9').to_a.freeze
     def initialize(&block)
       @lexemes = Hash.new {|hash, key| hash[key] = [] }
 
@@ -124,19 +127,18 @@ module RKelly
       token(:S, /[ \t\r\n\f\v]*/m, [" ", "\t", "\r", "\n", "\f", "\v"])
 
       # A regexp to match floating point literals (but not integer literals).
-      digits = ('0'..'9').to_a
-      token(:NUMBER, /\d+\.\d*(?:[eE][-+]?\d+)?|\d+(?:\.\d*)?[eE][-+]?\d+|\.\d+(?:[eE][-+]?\d+)?/m, digits+['.']) do |type, value|
+
+      token(:NUMBER, /\d+\.\d*(?:[eE][-+]?\d+)?|\d+(?:\.\d*)?[eE][-+]?\d+|\.\d+(?:[eE][-+]?\d+)?/m, DIGITS+['.']) do |type, value|
         value.gsub!(/\.(\D)/, '.0\1') if value =~ /\.\w/
-        value.gsub!(/\.$/, '.0') if value =~ /\.$/
-        value.gsub!(/^\./, '0.') if value =~ /^\./
-        [type, eval(value)]
+        #value.gsub!(/\.$/, '.0') if value.end_with? '.'
+        #value.gsub!(/^\./, '0.') if value.start_with? '.'
+        [type, value.to_f]
       end
-      token(:NUMBER, /0[xX][\da-fA-F]+|0[oO][0-7]+|0[0-7]*|\d+/, digits) do |type, value|
-        [type, eval(value)]
+      token(:NUMBER, /0[xX][\da-fA-F]+|0[oO][0-7]+|0[0-7]*|\d+/, DIGITS) do |type, value|
+        [type, value.to_i(0)]
       end
 
-      word_chars = ('a'..'z').to_a + ('A'..'Z').to_a + ['_', '$']
-      token(:RAW_IDENT, /([_\$A-Za-z][_\$0-9A-Za-z]*)/, word_chars) do |type,value|
+      token(:RAW_IDENT, /([_\$A-Za-z][_\$0-9A-Za-z]*)/, WORD_CHARS) do |type,value|
         if KEYWORDS[value]
           [KEYWORDS[value], value]
         elsif RESERVED[value]
@@ -211,7 +213,8 @@ module RKelly
 
     # Returns the token of the first matching lexeme
     def match_lexeme(scanner, accepting_regexp)
-      @lexemes[scanner.peek(1)].each do |lexeme|
+      lexemes = @lexemes[scanner.peek(1)].reverse
+      while lexeme = lexemes.pop
         next if lexeme.name == :REGEXP && !accepting_regexp
 
         token = lexeme.match(scanner)
@@ -238,12 +241,12 @@ module RKelly
 
     def followable_by_regex(current_token)
       case current_token.name
+      when :SINGLE_CHAR
+        !SINGLE_CHARS_THAT_IMPLY_DIVISION[current_token.value]
       when :RAW_IDENT
         KEYWORDS_THAT_IMPLY_REGEX[current_token.value]
       when :NUMBER
         false
-      when :SINGLE_CHAR
-        !SINGLE_CHARS_THAT_IMPLY_DIVISION[current_token.value]
       else
         true
       end

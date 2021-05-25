@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 module RKelly
   # Represents a character position in source code.
@@ -15,11 +16,14 @@ module RKelly
     # Creates a new character position that's a given string away from
     # this one.
     def next(string)
-      if string.include?("\n")
-        lines = string.split(/\n/, -1)
+      if !string
+        CharPos.new(@line, @char, @index)
+      elsif string.include?("\n")
+        lines = string.split("\n", -1)
         CharPos.new(@line + lines.length - 1, lines.last.length, @index + string.length)
       else
-        CharPos.new(@line, @char + string.length, @index + string.length)
+        length = string.length
+        CharPos.new(@line, @char + length, @index + length)
       end
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rkelly/char_pos'
 
 module RKelly
@@ -16,7 +18,7 @@ module RKelly
     # Creates a new range that immediately follows this one and
     # contains the given string.
     def next(string)
-      CharRange.new(@to.next(string.slice(0, 1)), @to.next(string))
+      CharRange.new(@to.next(string[0]), @to.next(string))
     end
 
     def to_s

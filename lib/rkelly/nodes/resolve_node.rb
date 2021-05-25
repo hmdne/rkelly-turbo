@@ -3,7 +3,7 @@ module RKelly
     class ResolveNode < Node
       def ==(other)
         return true if super
-        if @value =~ /^[A-Z]/
+        if ('A'..'Z').include? @value[0]
           place = [Object, Module, RKelly::Nodes].find { |x|
             x.const_defined?(@value.to_sym)
           }

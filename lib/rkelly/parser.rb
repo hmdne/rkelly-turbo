@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rkelly/tokenizer'
 require 'rkelly/generated_parser'
 
@@ -8,22 +10,21 @@ module RKelly
 
     RKelly::GeneratedParser.instance_methods.each do |im|
       next unless im.to_s =~ /^_reduce_\d+$/
-      eval(<<-eoawesomehack)
-        def #{im}(val, _values, result)
-          r = super(val.map { |v|
-              v.is_a?(Token) ? v.to_racc_token[1] : v
-            }, _values, result)
+      define_method im do |val, _values, result|
+        r = super(val.map { |v|
+            v.is_a?(Token) ? v.to_racc_token[1] : v
+          }, _values, result)
 
-          suitable_values = val.flatten.find_all {|v| v.is_a?(Node) || v.is_a?(Token) }
+        if r.respond_to? :range
+          suitable_values = val.flatten.find_all {|v| v.is_a? Token or v.is_a? Node }
           first = suitable_values.first
-          last = suitable_values.last
           if first
-            r.range = CharRange.new(first.range.from, last.range.to) if r.respond_to?(:range)
-            r.filename = @filename if r.respond_to?(:filename)
+            r.range = CharRange.new(first.range.from, suitable_values.last.range.to)
+            r.filename = @filename if @filename
           end
-          r
         end
-      eoawesomehack
+        r
+      end
     end
 
     attr_accessor :logger
@@ -72,6 +73,8 @@ module RKelly
       end
     end
 
+    SEMICOLON_TOKEN = RKelly::Token.new(';', ';').freeze
+
     def next_token
       @terminator = false
       begin
@@ -81,7 +84,7 @@ module RKelly
         case @tokens[@position - 1].name
         when :COMMENT
           @comments << n_token
-          @terminator = true if n_token.value =~ /^\/\//
+          @terminator = true if n_token.value.start_with? "//"
         when :S
           @terminator = true if n_token.value =~ /[\r\n]/
         end
@@ -91,7 +94,7 @@ module RKelly
           ((@prev_token && %w[continue break return throw].include?(@prev_token.value)) ||
            (n_token && %w[++ --].include?(n_token.value)))
         @position -= 1
-        return (@prev_token = RKelly::Token.new(';', ';')).to_racc_token
+        return (@prev_token = SEMICOLON_TOKEN.dup).to_racc_token
       end
 
       @prev_token = n_token

@@ -4,7 +4,7 @@ module RKelly
     def initialize(name, value, &transformer)
       @name         = name
       @value        = value
-      @transformer  = transformer
+      @transformer  = transformer if transformer
     end
 
     # For backwards compatibility
@@ -13,8 +13,11 @@ module RKelly
     end
 
     def to_racc_token
-      return transformer.call(name, value) if transformer
-      [name, value]
+      if @transformer
+        @name, @value = @transformer.call(@name, @value)
+        @transformer = nil
+      end
+      [@name, @value]
     end
 
     def to_s
