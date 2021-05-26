@@ -1,4 +1,8 @@
-= RKelly-Remix CHANGELOG
+= RKelly-Turbo CHANGELOG
+
+=== 0.1.0
+
+* Gain about 2x speedup by enacting some optimizations.
 
 === 0.0.7
 
