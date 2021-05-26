@@ -1,19 +1,20 @@
-= RKelly Remix
+= RKelly Turbo
 
-https://github.com/nene/rkelly-remix
+https://github.com/hmdne/rkelly-turbo
 
 == DESCRIPTION
 
-RKelly Remix is a fork of the
-RKelly[https://github.com/tenderlove/rkelly] JavaScript parser.
+RKelly Turbo is a fork of the RKelly Remix[https://github.com/nene/rkelly-remix]
+which in turn is a fork of RKelly[https://github.com/tenderlove/rkelly]
+JavaScript parser.
 
 == Install
 
-  gem install rkelly-remix
+  gem install rkelly-turbo
 
-Note that you can't have rkelly and rkelly-remix both installed at the
-same time.  That would cause a conflict since they're both included
-with:
+Note that you can't have rkelly, rkelly-remix, rkelly-turbo (any two)
+installed at the same time.  That would cause a conflict since they're
+all included with:
 
   require 'rkelly'
 
@@ -114,7 +115,7 @@ approach is taken by another JS parser: Esprima[http://esprima.org] ).
 
 The MIT License
 
-Copyright (c) 2007, 2008, 2009 Aaron Patterson, John Barnette
+Copyright (c) 2007, 2008, 2009, 2021 Aaron Patterson, John Barnette, hmdne
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
